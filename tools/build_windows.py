@@ -70,7 +70,7 @@ def main():
     (dist/'仅卡片启动.vbs').write_text('Set shell = CreateObject("WScript.Shell")\nSet fso = CreateObject("Scripting.FileSystemObject")\n'
         'exe = fso.BuildPath(fso.GetParentFolderName(WScript.ScriptFullName), "WorkBuddyDesktopPet.exe")\n'
         'shell.Run Chr(34) & exe & Chr(34) & " --card-only", 0, False\n',encoding='ascii')
-    for source in (project / "README.md", project / "NOTICE.md", project / "docs/releasing.md",project/'docs/materials.md',project/'docs/pet-pack.schema.json'):
+    for source in (project / "README.md", project / "NOTICE.md", project / "LICENSE", project / "docs/releasing.md",project/'docs/materials.md',project/'docs/pet-pack.schema.json'):
         if source.exists():
             shutil.copy2(source, dist / source.name)
     shutil.copytree(project / "licenses", dist / "licenses/public-licenses", dirs_exist_ok=True)

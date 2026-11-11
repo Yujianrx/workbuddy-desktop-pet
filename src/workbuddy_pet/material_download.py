@@ -8,6 +8,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
 
 from .materials import MaterialError
+from .update import REPOSITORY
 
 CATALOG_PATH=Path(__file__).with_name('catalog.json')
 
@@ -17,7 +18,7 @@ def default_spec(quality):
         catalog=json.loads(CATALOG_PATH.read_text(encoding='utf-8'))
         release=catalog.get('release','v0.2.0')
         spec=catalog['packs'][quality]
-        prefix=f'https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/releases/download/{release}/'
+        prefix=f'https://github.com/{REPOSITORY}/releases/download/{release}/'
         if (catalog.get('schema')!=1 or not re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+',release)
             or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9._-]*\.zip',spec['name'])
             or spec['url']!=prefix+spec['name'] or type(spec['bytes']) is not int

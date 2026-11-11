@@ -21,6 +21,35 @@ def release_fixture():
     return value,opener,Release('0.6.0',value['body'],url+name,name,len(data),digest),data
 
 
+def test_update_source_uses_current_repository():
+    from workbuddy_pet.update import REPOSITORY
+    assert REPOSITORY=='Yujianrx/workbuddy-desktop-pet'
+    assert LATEST=='https://api.github.com/repos/Yujianrx/workbuddy-desktop-pet/releases/latest'
+    assert RELEASES=='https://github.com/Yujianrx/workbuddy-desktop-pet/releases'
+
+
+def test_published_v072_metadata_is_accepted_and_old_owner_urls_are_not():
+    """Public v0.7.2 asset URLs already use the renamed owner. Recorded here so the check stays offline."""
+    name='workbuddy-desktop-pet-0.7.2-windows-x64.zip'
+    digest='eab0c98cdda2146b6fa0fea178edbba3aa93787a7ede2609fc39adf9b1e8d383'
+    size=167271607
+    prefix=RELEASES+'/download/v0.7.2/'
+    sums=(digest+'  '+name+'\n'
+          '53dd0a499ec31d1248eaa7382cdcb91be7393aa06a40946b03f78362276670cc  INSTALL-AND-MATERIALS.txt\n'
+          'a4f8f7ce5216e455bb6ab6db72773be795efe18796c0bc1c84b0bd8e489bd5ba  workbuddy-desktop-pet-0.7.2-windows-x64-setup.exe\n')
+    value={'tag_name':'v0.7.2','draft':False,'prerelease':False,'body':'龙女拖动',
+        'assets':[{'name':name,'browser_download_url':prefix+name,'size':size,'digest':'sha256:'+digest},
+                  {'name':'SHA256SUMS.txt','browser_download_url':prefix+'SHA256SUMS.txt'},
+                  {'name':'workbuddy-desktop-pet-0.7.2-windows-x64-setup.exe','browser_download_url':prefix+'setup.exe','size':1}]}
+    def opener(address):
+        return io.BytesIO(json.dumps(value).encode() if address==LATEST else sums.encode())
+    found=check_latest('0.7.1',opener)
+    assert found==Release('0.7.2','龙女拖动',prefix+name,name,size,digest)
+    assert check_latest('0.7.2',opener) is None
+    value['assets'][0]['browser_download_url']=prefix.replace('Yujianrx','zhujiaowo-sudo')+name
+    with pytest.raises(UpdateError,match='来源不匹配'):check_latest('0.7.1',opener)
+
+
 def test_only_newer_stable_complete_own_release():
     value,opener,expected,_=release_fixture()
     assert check_latest('0.5.1',opener)==expected
