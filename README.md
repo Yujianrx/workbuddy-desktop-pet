@@ -6,7 +6,7 @@
 
 为 **Windows 10 / 11 x64** 打造的 WorkBuddy 专用桌宠：任务进行时陪你工作，完成时提醒你，空闲时眨眼、招手、吃零食。通过会话胶囊查看任务、积分与本机用量，也可以一键回到 WorkBuddy 对话。
 
-[下载 Windows 最新版](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/releases/latest) · [安装与连接](#安装与首次连接) · [操作指南](#怎么使用) · [常见问题](#常见问题) · [自制角色](docs/materials.md)
+[下载 Windows 最新版](https://github.com/Yujianrx/workbuddy-desktop-pet/releases/latest) · [安装与连接](#安装与首次连接) · [操作指南](#怎么使用) · [常见问题](#常见问题) · [自制角色](docs/materials.md)
 
 <p align="center">
   <img src="src/workbuddy_pet/assets/default_pet/actions/click_wave.gif" width="260" alt="薄荷星伴完整挥手动作：抬手、招手并放下手臂">
@@ -50,7 +50,7 @@
 
 设计参考 [Emil Kowalski 的设计工程指南](https://github.com/emilkowalski/skills/tree/main/skills/emil-design-eng) 与 [Sonner](https://github.com/emilkowalski/sonner)，以 PySide6 独立实现。高频导航与键盘操作即时响应；鼠标展开看板使用短促淡入，并尊重 Windows 的系统动画设置。
 
-当前正式版为 **v0.7.2**，动画已随程序内置，无需另下素材包。见[版本说明](docs/releases/v0.7.2.md)与[全部发行版本](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/releases)。
+当前正式版为 **v0.7.2**，动画已随程序内置，无需另下素材包。见[版本说明](docs/releases/v0.7.2.md)与[全部发行版本](https://github.com/Yujianrx/workbuddy-desktop-pet/releases)。
 
 ## 功能特性
 
@@ -80,7 +80,7 @@
 
 ## 安装与首次连接
 
-1. 打开[最新发行页](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/releases/latest)，下载 `workbuddy-desktop-pet-0.7.2-windows-x64-setup.exe`。
+1. 打开[最新发行页](https://github.com/Yujianrx/workbuddy-desktop-pet/releases/latest)，下载 `workbuddy-desktop-pet-0.7.2-windows-x64-setup.exe`。
 2. 运行中文安装向导，默认仅安装到当前用户的程序目录，无需管理员权限。首次安装在同一页确认 WorkBuddy 接入、积分查询、手动签到及可选自启。
 3. 安装完成后启动桌宠。已使用桌宠的用户自动沿用原角色、素材和授权；首次接入需先安装并登录 WorkBuddy。若未检测到或连接失败，设置页会提供重新连接入口。
 4. 在 WorkBuddy **新建任务**验证状态变化；旧会话可能尚未加载插件。若持续没有事件，保存工作后重新打开 WorkBuddy。登录和任务审批仍在 WorkBuddy 中完成。
@@ -182,7 +182,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe tools\verify_package.py --scratch C:/wb-pet-smoke
 ```
 
-构建产物位于 `dist/`。v0.6.4发布时通过171项回归、冻结程序验证和Windows CI，16段动画均完成100%／150%缩放下至少三轮原生播放检查；后续状态以[GitHub Actions](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/actions)及[兼容性记录](docs/compatibility.md)为准。
+构建产物位于 `dist/`。v0.6.4发布时通过171项回归、冻结程序验证和Windows CI，16段动画均完成100%／150%缩放下至少三轮原生播放检查；后续状态以[GitHub Actions](https://github.com/Yujianrx/workbuddy-desktop-pet/actions)及[兼容性记录](docs/compatibility.md)为准。
 
 ## 项目结构
 
@@ -208,6 +208,7 @@ workbuddy-desktop-pet/
 ├─ installer/                   # 当前用户中文安装向导
 ├─ tools/                       # Windows构建、冻结验证、素材校验
 ├─ docs/                        # 使用、素材、兼容性、版本与设计记录
+├─ LICENSE                      # 程序代码 MIT，不包含角色素材
 ├─ licenses/                    # 角色署名与依赖许可
 ├─ requirements-dev.lock        # 开发及构建依赖锁定
 └─ pyproject.toml               # 包元数据与运行依赖
@@ -215,14 +216,18 @@ workbuddy-desktop-pet/
 
 ## 文档与反馈
 
-[安装与构建](docs/releasing.md) · [更新与回退](docs/updating.md) · [素材制作](docs/materials.md) · [兼容性与实测范围](docs/compatibility.md) · [项目上下文](docs/project-context.md) · [提交问题](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/issues)
+[安装与构建](docs/releasing.md) · [更新与回退](docs/updating.md) · [素材制作](docs/materials.md) · [兼容性与实测范围](docs/compatibility.md) · [项目上下文](docs/project-context.md) · [提交问题](https://github.com/Yujianrx/workbuddy-desktop-pet/issues)
 
 反馈问题时请附Windows版本、WorkBuddy版本、桌宠版本、操作步骤和脱敏截图。请勿上传真实会话、账户票据、API密钥或完整个人数据目录。
 
 ## 角色署名与项目说明
 
+程序代码采用 [MIT 许可](LICENSE)，版权 2026 Yujianrx。这份 MIT 只适用于程序代码，不适用于角色图片和动画。
+
 默认角色“薄荷星伴”原作者为 **Buddy娘**，采用 [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)。本版动作由用户制作提供；内置GIF原字节与时序保留，许可及改动说明见 [NOTICE](NOTICE.md) 和[角色署名](licenses/mint-orbit/NOTICE.txt)。
 
-薄荷星伴素材采用CC-BY-4.0；其他角色的授权以各自声明为准。程序代码的发行许可尚未指定。PySide6、Pillow等依赖按各自许可分发，随包保留相应说明。
+蓝色小鱼和白发龙角女仆由用户授权在本项目中随程序发布。原包没有通用再分发许可，不能把这些图片单独拿到其他项目里使用；其他用途需要另外取得授权。说明见[蓝色小鱼素材说明](licenses/blue-fish/NOTICE.txt)和[龙女署名](src/workbuddy_pet/assets/dragon_maid/ATTRIBUTION.md)。
+
+PySide6、Pillow 等依赖按各自许可分发，随包保留相应说明。
 
 本项目为独立社区项目，与腾讯、WorkBuddy无隶属或背书关系。素材来源和依赖许可见[项目说明](NOTICE.md)。

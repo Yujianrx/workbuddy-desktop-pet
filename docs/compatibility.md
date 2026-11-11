@@ -2,7 +2,7 @@
 
 ## v0.6.2 动画结构与收起入口
 
-[代码097c881的Windows CI成功](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/actions/runs/40646376430/job/122676040505)，[v0.6.2已正式公开](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/releases/tag/v0.6.2)。最终冻结程序可导入/播放APNG1.4.0；独立目录真实0.6.1→0.6.2自动升级重启并保留配置/测试文件成功。公开6附件摘要一致，匿名默认16段轻量包可导入；公开latest及程序下载50,324,386字节校验成功。本机已启动0.6.2/素材1.4.0，原大小150、自启关闭、授权和显隐状态保留，未领取签到。
+[代码097c881的Windows CI成功](https://github.com/Yujianrx/workbuddy-desktop-pet/actions/runs/40646376430/job/122676040505)，[v0.6.2已正式公开](https://github.com/Yujianrx/workbuddy-desktop-pet/releases/tag/v0.6.2)。最终冻结程序可导入/播放APNG1.4.0；独立目录真实0.6.1→0.6.2自动升级重启并保留配置/测试文件成功。公开6附件摘要一致，匿名默认16段轻量包可导入；公开latest及程序下载50,324,386字节校验成功。本机已启动0.6.2/素材1.4.0，原大小150、自启关闭、授权和显隐状态保留，未领取签到。
 
 2026-10-28：157项原生回归通过（退出码0）。回归新增：小卡−不隐藏人物；同一个右键Action切换收起/显示、无重复按钮；播放器在帧中途和动作切换时不叠加旧图片；透明窗口重绘清空旧像素；idle/scratch共享身体与腿、头顶/嘴部固定，抬手不遮眼；手套独立区域尺寸对照；APNG16帧逐像素回读及40–200ms时长。
 
@@ -12,7 +12,7 @@
 
 ## v0.6.1 独立胶囊与待机动作
 
-[代码d2c0e59的Windows CI成功](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/actions/runs/40641437258/job/122660257135)，最终152项测试；[v0.6.1正式公开](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/releases/tag/v0.6.1)。最终冻结包验证通过；独立目录真实0.6.0升级0.6.1、自动重启及设置/测试文件保留成功。本机已启动0.6.1和薄荷1.3.0，保留大小150、自启关闭、胶囊隐藏状态及既有余额/签到授权，未执行签到领取。公开6附件摘要一致，匿名轻量包下载可导入16动作；真实更新器由latest识别0.6.1，下载50,321,137字节程序并校验成功，进度完成。
+[代码d2c0e59的Windows CI成功](https://github.com/Yujianrx/workbuddy-desktop-pet/actions/runs/40641437258/job/122660257135)，最终152项测试；[v0.6.1正式公开](https://github.com/Yujianrx/workbuddy-desktop-pet/releases/tag/v0.6.1)。最终冻结包验证通过；独立目录真实0.6.0升级0.6.1、自动重启及设置/测试文件保留成功。本机已启动0.6.1和薄荷1.3.0，保留大小150、自启关闭、胶囊隐藏状态及既有余额/签到授权，未执行签到领取。公开6附件摘要一致，匿名轻量包下载可导入16动作；真实更新器由latest识别0.6.1，下载50,321,137字节程序并校验成功，进度完成。
 
 2026-10-28：151项原生回归通过（退出码0）。胶囊隐藏人物后独立贴底、积分宽度变化不跳回、重启保留隐藏/坐标、右键恢复及仅卡片显式退出、重置到主屏右下角均由合成UI/纯位置测试覆盖；支持负坐标副屏。150%原生窗口另确认大小150时可到实际可用区域底边，恢复后人物完整可见、胶囊仍在上方8px。
 
@@ -22,7 +22,7 @@
 
 ## v0.6.0 绑定、快捷按钮与更新
 
-[代码提交c0e3831的Windows CI成功](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/actions/runs/40629236615/job/122621445419)，[v0.6.0已正式公开](https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/releases/tag/v0.6.0)。已验证6个附件大小/SHA-256；匿名校验文件和默认轻量包下载成功。更新器实际调用公开latest接口：旧版本参数识别0.6.0，当前版本参数不重复更新；实际下载50,313,020字节程序ZIP，SHA-256通过，进度完成。该在线验证覆盖检查/下载，安装交换与回退采用下述独立目录演练。
+[代码提交c0e3831的Windows CI成功](https://github.com/Yujianrx/workbuddy-desktop-pet/actions/runs/40629236615/job/122621445419)，[v0.6.0已正式公开](https://github.com/Yujianrx/workbuddy-desktop-pet/releases/tag/v0.6.0)。已验证6个附件大小/SHA-256；匿名校验文件和默认轻量包下载成功。更新器实际调用公开latest接口：旧版本参数识别0.6.0，当前版本参数不重复更新；实际下载50,313,020字节程序ZIP，SHA-256通过，进度完成。该在线验证覆盖检查/下载，安装交换与回退采用下述独立目录演练。
 
 2026-10-28：140项 Windows 原生回归通过（退出码0），最后的来源验证/检查重试修正再通过13项更新相关测试。覆盖旧配置迁移、不静默开启积分授权、一次确认绑定且保留其他插件/审批设置、胶囊隐藏和恢复、快捷按钮分发、整数积分宽度、15动作及坐姿固定轮廓、后台更新确认、下载重试/取消和不安全ZIP。
 

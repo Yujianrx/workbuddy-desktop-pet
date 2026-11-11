@@ -17,7 +17,7 @@ from urllib.parse import urlsplit
 
 from .storage import atomic_json,plain
 
-REPOSITORY='zhujiaowo-sudo/workbuddy-desktop-pet'
+REPOSITORY='Yujianrx/workbuddy-desktop-pet'
 RELEASES=f'https://github.com/{REPOSITORY}/releases'
 LATEST=f'https://api.github.com/repos/{REPOSITORY}/releases/latest'
 EXE='WorkBuddyDesktopPet.exe'

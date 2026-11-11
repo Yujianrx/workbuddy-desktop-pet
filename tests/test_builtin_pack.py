@@ -1,9 +1,23 @@
-import hashlib,json,time,zipfile
+import hashlib,json,time,tomllib,zipfile
 from pathlib import Path
 import pytest
 from PIL import Image
 from workbuddy_pet.builtin import builtin_pack,PACK_ROOT
 from workbuddy_pet.materials import ALL_ACTIONS,OPTIONAL_IDLE_ACTIONS,LOOP_ACTIONS,validate_pack,iter_animation,MaterialError
+
+def test_source_package_data_includes_all_three_builtin_packs():
+    project=Path(__file__).resolve().parents[1]
+    config=tomllib.loads((project/'pyproject.toml').read_text(encoding='utf-8'))
+    root=project/'src'/'workbuddy_pet'
+    included=set()
+    for pattern in config['tool']['setuptools']['package-data']['workbuddy_pet']:
+        included.update(path.relative_to(root).as_posix() for path in root.glob(pattern) if path.is_file())
+    for pack in ('default_pet','blue_fish','dragon_maid'):
+        files=[path.relative_to(root).as_posix() for path in (root/'assets'/pack).rglob('*') if path.is_file()]
+        assert files and set(files)<=included
+    for name in ('catalog.json','update_install.ps1','assets/mint-orbit-idle.png','assets/ui/chevron-down.svg','assets/ui/chevron-up.svg','assets/dragon_maid/ATTRIBUTION.md'):
+        assert name in included
+
 
 def test_bundled_gifs_preserve_all_authored_frames_and_timing():
     audit=json.loads((Path(__file__).resolve().parents[1]/'art/mint-orbit/user-gifs-v2.0.0.json').read_text())

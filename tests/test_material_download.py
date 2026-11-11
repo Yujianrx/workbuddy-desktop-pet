@@ -16,7 +16,7 @@ def catalog_fixture(tmp_path,monkeypatch):
             'license':'CC0-1.0','version':'1','quality':'light','actions':{'idle':{'file':'idle.png'}}}))
     data=stream.getvalue()
     spec={'name':'test.zip','bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),
-          'url':'https://github.com/zhujiaowo-sudo/workbuddy-desktop-pet/releases/download/v0.3.1/test.zip'}
+          'url':'https://github.com/Yujianrx/workbuddy-desktop-pet/releases/download/v0.3.1/test.zip'}
     path=tmp_path/'catalog.json'
     def save():path.write_text(json.dumps({'schema':1,'release':'v0.3.1','packs':{'light':spec}}))
     save();monkeypatch.setattr(downloads,'CATALOG_PATH',path)
@@ -24,6 +24,16 @@ def catalog_fixture(tmp_path,monkeypatch):
     def fetch(url,**kwargs):calls.append(url);return io.BytesIO(data)
     monkeypatch.setattr(downloads,'urlopen',fetch)
     return spec,save,calls
+
+
+def test_shipped_catalog_matches_release_and_has_no_remote_packs(tmp_path):
+    from workbuddy_pet import __version__
+    from workbuddy_pet.update import REPOSITORY
+    catalog=json.loads(downloads.CATALOG_PATH.read_text(encoding='utf-8'))
+    assert catalog=={'schema':1,'release':'v'+__version__,'packs':{}}
+    assert REPOSITORY=='Yujianrx/workbuddy-desktop-pet'
+    with pytest.raises(MaterialError,match='下载清单无效'):
+        downloads.download_default('hd',MaterialLibrary(tmp_path/'library'))
 
 
 def test_release_download_keeps_digest_and_import_validation(tmp_path,monkeypatch):
