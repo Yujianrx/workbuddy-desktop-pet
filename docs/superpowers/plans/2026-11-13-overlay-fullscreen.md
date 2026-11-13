@@ -15,6 +15,8 @@
 - [x] 合成全屏判定、配置迁移、显隐恢复与短胶囊测试。
 - [x] Windows探测、Controller隐藏策略、置顶和UI入口实现。
 - [x] 原生全屏／置顶与100%／150%布局验证，全量回归和冻结程序检查。
-- [ ] 更新0.7.3文档和安装包，Windows CI通过后发布及保留偏好的本机升级。
+- [x] 更新0.7.3文档和安装包，Windows CI通过后发布及保留偏好的本机升级。
 
 按用户已确认方案在本会话执行；每项先验证失败再实现，不改动任何角色GIF或授权。
+
+交付完成：221项回归通过；[发布提交的Windows CI](https://github.com/Yujianrx/workbuddy-desktop-pet/actions/runs/43353016435/job/131648344651)成功；[v0.7.3正式版](https://github.com/Yujianrx/workbuddy-desktop-pet/releases/tag/v0.7.3)四附件服务器SHA256与本地一致。本机安装登记与新运行进程均为0.7.3，已有角色、人物显隐、授权、导入素材和回退目录保留。
