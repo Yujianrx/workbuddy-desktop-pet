@@ -7,7 +7,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QCheckBox, QDialog, QFileDialog, QFormLayout, QHBoxLayout,
                               QLabel, QLineEdit, QPushButton, QSpinBox, QTextEdit, QVBoxLayout,QComboBox)
 
-from ..settings import Settings,DISPLAY_MODES,display_mode
+from ..settings import Settings,DISPLAY_MODES,display_mode,OVERLAY_OPTIONS
 
 
 class SettingsDialog(QDialog):
@@ -61,6 +61,10 @@ class SettingsDialog(QDialog):
         for label,key in DISPLAY_MODES:self.display_mode.addItem(label,key)
         self.sync_display(settings)
         form.addRow('显示方式',self.display_mode)
+        for label,key in OVERLAY_OPTIONS:
+            control=QCheckBox(label);control.setChecked(getattr(settings,key));setattr(self,key,control)
+            form.addRow('',control)
+        self.auto_hide_fullscreen.setToolTip('前台全屏、独占全屏游戏或演示时一起隐藏桌宠和胶囊，退出后恢复。')
         self.theme_combo=QComboBox()
         for label,key in THEME_NAMES:self.theme_combo.addItem(label,key)
         self.theme_combo.setCurrentIndex(self.theme_combo.findData(settings.theme));form.addRow('看板配色',self.theme_combo)
@@ -126,7 +130,8 @@ class SettingsDialog(QDialog):
         for signal in (self.path.textEdited,self.size.valueChanged,self.notify.toggled,self.startup.toggled,
                        self.display_mode.currentIndexChanged,self.auto_collapse.toggled,self.collapse_seconds.valueChanged,
                        self.balance_enabled.toggled,self.checkin_enabled.toggled,self.quick_action.currentIndexChanged,
-                       self.quick_url.textEdited,self.auto_update.toggled,self.theme_combo.currentIndexChanged,self.transparent.toggled):signal.connect(self.changed)
+                       self.quick_url.textEdited,self.auto_update.toggled,self.theme_combo.currentIndexChanged,self.transparent.toggled,
+                       self.pet_topmost.toggled,self.capsule_topmost.toggled,self.auto_hide_fullscreen.toggled):signal.connect(self.changed)
 
 
     def sync_display(self,settings):
@@ -143,7 +148,8 @@ class SettingsDialog(QDialog):
                                 notifications=self.notify.isChecked(), startup=self.startup.isChecked(),
                                 card_only=self.display_mode.currentData() in ('detached','window_only'),avatar_collapsed=False,
                                 window_mode=self.display_mode.currentData() in ('window','window_only'),
-                                theme=self.theme_combo.currentData(),capsule_transparent=self.transparent.isChecked(),
+                                pet_topmost=self.pet_topmost.isChecked(),capsule_topmost=self.capsule_topmost.isChecked(),
+                                auto_hide_fullscreen=self.auto_hide_fullscreen.isChecked(),theme=self.theme_combo.currentData(),capsule_transparent=self.transparent.isChecked(),
                                 minimal=self.display_mode.currentData()=='minimal',auto_collapse=self.auto_collapse.isChecked(),
                                 collapse_seconds=self.collapse_seconds.value(),balance_enabled=self.balance_enabled.isChecked(),
                                 checkin_enabled=self.checkin_enabled.isChecked(),quick_action=self.quick_action.currentData(),

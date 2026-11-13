@@ -2,7 +2,7 @@
 from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtWidgets import QMenu
 from .theme import MENU,THEME_NAMES
-from ..settings import DISPLAY_MODES
+from ..settings import DISPLAY_MODES,OVERLAY_OPTIONS
 
 
 def module_menu(parent,page_requested,quit_requested,avatar_requested=None):
@@ -17,6 +17,10 @@ def module_menu(parent,page_requested,quit_requested,avatar_requested=None):
         action=modes.addAction(label);action.setCheckable(True);group.addAction(action)
         action.triggered.connect(lambda checked=False,k=key:page_requested.emit('mode:'+k))
         menu.mode_actions[key]=action
+    modes.addSeparator();menu.overlay_actions={}
+    for label,key in OVERLAY_OPTIONS:
+        action=modes.addAction(label);action.setCheckable(True);menu.overlay_actions[key]=action
+        action.triggered.connect(lambda checked,k=key:page_requested.emit('overlay:'+k+':'+str(int(checked))))
     appearance=menu.addMenu('外观');menu.theme_actions={};themes=QActionGroup(menu);themes.setExclusive(True)
     for label,key in THEME_NAMES:
         action=appearance.addAction(label);action.setCheckable(True);themes.addAction(action)

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "workbuddy-desktop-pet"
-version = "0.7.2"
+version = "0.7.3"
 description = "A local Windows desktop companion for WorkBuddy"
 requires-python = ">=3.12"
 dependencies = ["PySide6-Essentials>=6.8,<7", "Pillow>=11,<13"]
@@ -14,7 +14,7 @@ dependencies = ["PySide6-Essentials>=6.8,<7", "Pillow>=11,<13"]
 Homepage = "https://github.com/Yujianrx/workbuddy-desktop-pet"
 Repository = "https://github.com/Yujianrx/workbuddy-desktop-pet"
 Issues = "https://github.com/Yujianrx/workbuddy-desktop-pet/issues"
-Changelog = "https://github.com/Yujianrx/workbuddy-desktop-pet/blob/main/docs/releases/v0.7.2.md"
+Changelog = "https://github.com/Yujianrx/workbuddy-desktop-pet/blob/main/docs/releases/v0.7.3.md"
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "pyinstaller>=6,<7"]

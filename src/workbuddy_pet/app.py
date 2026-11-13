@@ -7,12 +7,13 @@ from collections import deque
 from dataclasses import replace
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QThread, QTimer, Signal
+from PySide6.QtCore import QObject, QThread, QTimer, Signal, Qt
 from PySide6.QtGui import QFont, QGuiApplication
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from . import __version__
+from .fullscreen import fullscreen_active
 from .events import Event
 from .settings import Rect, clamp_position, load_settings, save_settings
 from .spool import SpoolReader
@@ -73,6 +74,10 @@ class Controller(QObject):
         self.started = time.time()
         self.dialog = None
         self.user_visible = True
+        self.fullscreen_probe=(lambda:False) if demo else fullscreen_active
+        self.fullscreen_hidden=self.settings.auto_hide_fullscreen and self.fullscreen_probe() is True
+        self._fullscreen_clear_samples=0
+        self._fullscreen_dialogs=set()
         self.avatar_collapsed=self.settings.avatar_collapsed
         self._capsule_anchor=None
         self.binding=None;self.discovery_job=None
@@ -106,6 +111,8 @@ class Controller(QObject):
             self.acknowledged = deque(maxlen=512)
         self.pet = PetWindow(self.settings.size, demo)
         self.bubble = CardWindow(demo)
+        self.pet.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+        self.bubble.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.player = AnimationPlayer(self)
         self.player.finished.connect(self.finish_long_interaction)
         self.player.changed.connect(self.pet.update)
@@ -169,9 +176,9 @@ class Controller(QObject):
         self.bubble.set_compact(self.settings.compact)
         self._card_placed=False  # First placement uses saved pet/card coordinates, not the hidden widget's origin.
         self.reset_position(self.settings.position)
-        self.pet.setVisible(not self.settings.card_only and not self.avatar_collapsed)
+        self.pet.setVisible(self.user_visible and not self.fullscreen_hidden and not self.settings.card_only and not self.avatar_collapsed)
         if self.settings.card_only:self.pet.timer.stop()
-        self.bubble.show()
+        self.sync_visibility()
         self.restore_character()
         if self.avatar_collapsed and not self.settings.card_position:
             self._card_placed=False
@@ -196,10 +203,71 @@ class Controller(QObject):
         app.aboutToQuit.connect(self.shutdown)
         from .ui.updates import UpdateManager
         self.updates=UpdateManager(self)
+        self.apply_overlay_options()
+        self.fullscreen_timer=QTimer(self);self.fullscreen_timer.setInterval(500)
+        self.fullscreen_timer.timeout.connect(self.poll_fullscreen);self.fullscreen_timer.start()
         self.apply_appearance()
         self.dialog.update_requested.connect(lambda:self.updates.check(manual=True))
         if not demo:QTimer.singleShot(1000,self.first_binding)
         self.refresh()
+
+    def sync_visibility(self):
+        visible=self.user_visible and not self.fullscreen_hidden
+        self.pet.setVisible(visible and not self.settings.card_only and not self.avatar_collapsed)
+        self.bubble.setVisible(visible)
+
+    def poll_fullscreen(self):
+        if self.shutting_down:return
+        if not self.settings.auto_hide_fullscreen:
+            self._fullscreen_clear_samples=0;self.set_fullscreen_hidden(False);return
+        sample=self.fullscreen_probe()
+        if sample is None:self._fullscreen_clear_samples=0;return
+        if sample:
+            self._fullscreen_clear_samples=0;self.set_fullscreen_hidden(True)
+        elif self.fullscreen_hidden:
+            self._fullscreen_clear_samples+=1
+            if self._fullscreen_clear_samples>=2:self.set_fullscreen_hidden(False)
+        else:self._fullscreen_clear_samples=0
+
+    def set_fullscreen_hidden(self,hidden):
+        if hidden==self.fullscreen_hidden:return
+        self.fullscreen_hidden=hidden
+        if hidden:
+            self.idle_director.cancel();self.ambient_director.cancel();self.finish_interaction(refresh=False)
+            self.cancel_drag()
+            self.pet.context_menu.hide();self.bubble.context_menu.hide()
+            for dialog in (self.updates.dialog,self.binding):
+                if dialog and dialog.isVisible():self._fullscreen_dialogs.add(dialog);dialog.hide()
+        self.sync_visibility()
+        if not hidden:
+            pending=self._fullscreen_dialogs;self._fullscreen_dialogs=set()
+            if self.user_visible:
+                for dialog in pending:dialog.show()
+        self.refresh()
+
+    def show_overlay_dialog(self,dialog):
+        dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+        dialog.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint,self.settings.capsule_topmost)
+        if self.fullscreen_hidden:self._fullscreen_dialogs.add(dialog);return
+        dialog.show();dialog.raise_()
+
+    def apply_overlay_options(self):
+        windows=[(self.pet,self.settings.pet_topmost),(self.bubble,self.settings.capsule_topmost)]
+        if getattr(self,'updates',None):windows.append((self.updates.dialog,self.settings.capsule_topmost))
+        if self.binding:windows.append((self.binding,self.settings.capsule_topmost))
+        for window,topmost in windows:
+            window.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+            if bool(window.windowFlags()&Qt.WindowType.WindowStaysOnTopHint)!=topmost:
+                pos=window.pos();visible=window.isVisible()
+                window.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint,topmost)
+                window.move(pos);window.setVisible(visible and not self.fullscreen_hidden)
+
+    def set_overlay_option(self,key,value):
+        if key not in ('pet_topmost','capsule_topmost','auto_hide_fullscreen'):return
+        self.settings=replace(self.settings,**{key:bool(value)})
+        self.dialog.settings=self.settings;getattr(self.dialog,key).setChecked(bool(value))
+        save_settings(self.root,self.settings)
+        self.apply_overlay_options();self.poll_fullscreen();self.refresh()
 
     def screens(self):
         return [Rect(s.availableGeometry().x(), s.availableGeometry().y(), s.availableGeometry().width(),
@@ -270,7 +338,7 @@ class Controller(QObject):
 
     def collapse_avatar(self):
         self.bubble.minimal=False
-        self.user_visible=True;self.bubble.show();self.bubble.set_compact(True,manual=True)
+        self.user_visible=True;self.sync_visibility();self.bubble.set_compact(True,manual=True)
         self.avatar_collapsed=True;self.pet.hide()
         self.idle_director.cancel();self.ambient_director.cancel();self.finish_interaction(refresh=False)
         self._capsule_anchor=Rect(self.bubble.x(),self.bubble.y(),self.bubble.width(),self.bubble.height())
@@ -296,7 +364,7 @@ class Controller(QObject):
             self.pet.move(*pet_below_capsule(rect,anchor,capsule,self.screens()))
         self.bubble.minimal=self.settings.minimal
         self.bubble.set_mode(self.bubble.mode)
-        self.pet.setVisible(not self.settings.card_only)
+        self.pet.setVisible(self.user_visible and not self.fullscreen_hidden and not self.settings.card_only)
         self.bubble.set_avatar_hidden(self.settings.card_only,self.settings.card_only)
         self.dialog.card_only.setChecked(self.settings.card_only);self.dialog.settings=self.settings
         self.position_bubble()
@@ -304,15 +372,15 @@ class Controller(QObject):
 
     def show_avatar(self):
         self.restore_avatar(exit_card_only=True)
-        self.bubble.show();self.refresh()
+        self.sync_visibility();self.refresh()
 
     def open_card(self):
         self.finish_interaction()
         self.user_visible=True
-        self.pet.setVisible(not self.settings.card_only and not self.avatar_collapsed)
-        self.bubble.show();self.bubble.open_page('details')
+        self.pet.setVisible(self.user_visible and not self.fullscreen_hidden and not self.settings.card_only and not self.avatar_collapsed)
+        self.sync_visibility();self.bubble.open_page('details')
         self.position_bubble()
-        self.bubble.raise_();self.bubble.activateWindow()
+        if not self.fullscreen_hidden:self.bubble.raise_();self.bubble.activateWindow()
 
     def populate_menu(self,menu):
         from .builtin import BUILTIN_PACKS,builtin_pack
@@ -327,6 +395,7 @@ class Controller(QObject):
             from .settings import display_mode
             selected=display_mode(self.settings)
             action.setChecked(key==selected)
+        for key,action in menu.overlay_actions.items():action.setChecked(getattr(self.settings,key))
         for key,action in menu.theme_actions.items():action.setChecked(key==self.settings.theme)
         menu.transparent_action.setChecked(self.settings.capsule_transparent)
 
@@ -353,7 +422,7 @@ class Controller(QObject):
         self.settings=replace(self.settings,window_mode=True,minimal=False,compact=True)
         self.bubble.window_mode=True;self.bubble.minimal=False;self.bubble.set_mode('window')
         self.dialog.settings=self.settings;self.dialog.sync_display(self.settings)
-        save_settings(self.root,self.settings);self.bubble.show();self.position_bubble();self.refresh()
+        save_settings(self.root,self.settings);self.sync_visibility();self.position_bubble();self.refresh()
 
     def switch_to_capsule(self):
         self.settings=replace(self.settings,window_mode=False,minimal=False,compact=True)
@@ -367,9 +436,11 @@ class Controller(QObject):
         self.settings=replace(self.settings,minimal=minimal,compact=True,window_mode=False)
         self.bubble.minimal=minimal;self.bubble.set_compact(True)
         self.dialog.settings=self.settings;self.dialog.sync_display(self.settings)
-        save_settings(self.root,self.settings);self.bubble.show();self.position_bubble()
+        save_settings(self.root,self.settings);self.sync_visibility();self.position_bubble()
 
     def open_page(self,key):
+        if key.startswith("overlay:"):
+            _,name,value=key.split(":",2);self.set_overlay_option(name,value=="1");return
         if key.startswith('theme:'):self.set_appearance(theme=key.split(':',1)[1]);return
         if key.startswith('transparent:'):self.set_appearance(transparent=key.endswith(':1'));return
         if key=='presentation:capsule':self.switch_to_capsule();return
@@ -386,9 +457,10 @@ class Controller(QObject):
         if key=='capsule':
             self.collapse_avatar()
         else:
-            self.user_visible=True;self.pet.setVisible(not self.settings.card_only and not self.avatar_collapsed);self.bubble.show()
+            self.user_visible=True;self.pet.setVisible(self.user_visible and not self.fullscreen_hidden and not self.settings.card_only and not self.avatar_collapsed);self.sync_visibility()
             self.bubble.open_page(key)
-            self.position_bubble();self.bubble.raise_();self.bubble.activateWindow()
+            self.position_bubble()
+            if not self.fullscreen_hidden:self.bubble.raise_();self.bubble.activateWindow()
 
     def interact(self):
         now=time.monotonic()
@@ -710,7 +782,7 @@ class Controller(QObject):
                 self.bubble.materials.status.setText('动画读取失败，已暂时使用内置角色。')
         self.pet.set_visual(action,fallback=not self.active_pack or action not in self.active_pack.actions
                             or action=='working' and self.active_pack.schema==1)
-        self.bubble.maybe_collapse(self.settings)
+        if not self.fullscreen_hidden:self.bubble.maybe_collapse(self.settings)
         if time.monotonic()>=self.next_data:self.load_data(self.bubble.range.currentData())
         if time.monotonic()>=self.next_balance:self.load_balance()
         day=local_day()
@@ -719,7 +791,7 @@ class Controller(QObject):
             self.bubble.set_checkin(self.checkin_snapshot)
         if time.monotonic()>=self.next_checkin:self.load_checkin()
         for reminder in display.reminders:
-            if reminder.id not in self.sent:
+            if reminder.id not in self.sent and not self.fullscreen_hidden:
                 self.sent.add(reminder.id)
                 if self.settings.notifications and not self.demo:
                     self.tray.remind(reminder.kind)
@@ -727,6 +799,7 @@ class Controller(QObject):
             atomic_json(self.root / "runtime.json", {"schema": 1, "version": __version__, "pid": os.getpid(),
                 "at": time.time(), "state": display.state, "connection": display.connection,
                 "sessions": display.session_count, "unread": len(display.reminders), "demo": self.demo,
+                "fullscreen_hidden":self.fullscreen_hidden,"pet_topmost":self.settings.pet_topmost,"capsule_topmost":self.settings.capsule_topmost,
                 "visible": self.bubble.isVisible(), "card_only":self.settings.card_only,
                 "compact":self.bubble.compact,"view_mode":self.bubble.mode,"balance_available":self.bubble.balance is not None,
                 "animation_loaded":bool(self.player.frames),
@@ -786,6 +859,7 @@ class Controller(QObject):
             if previous.window_mode!=settings.window_mode:self.bubble.set_mode('window' if settings.window_mode else 'capsule')
             else:self.bubble.set_mode(self.bubble.mode)
             self.apply_appearance()
+            self.apply_overlay_options();self.poll_fullscreen()
             if settings.card_only or previous.character!=settings.character:
                 self.idle_director.cancel();self.finish_interaction(refresh=False)
             self.next_balance=0
@@ -794,7 +868,7 @@ class Controller(QObject):
             self.pet.set_pet_size(settings.size)
             self.bubble.set_quick_action(settings.quick_action,settings.quick_url)
             self.bubble.set_avatar_hidden(settings.card_only or self.avatar_collapsed,settings.card_only)
-            self.pet.setVisible(self.user_visible and not settings.card_only and not self.avatar_collapsed)
+            self.pet.setVisible(self.user_visible and not self.fullscreen_hidden and not settings.card_only and not self.avatar_collapsed)
             self.pet.authored_drag=bool(self.active_pack and {'drag_lift','drag_drop'}<=self.active_pack.actions.keys())
             self.player.set_visible(self.pet.isVisible())
             if settings.card_only:
@@ -829,7 +903,7 @@ class Controller(QObject):
             self.binding.bind_requested.connect(self.complete_binding)
             self.binding.detect_requested.connect(self.detect_workbuddy)
         self.binding.found(self.settings.workbuddy_path)
-        self.binding.show();self.binding.raise_();self.binding.activateWindow()
+        self.show_overlay_dialog(self.binding)
         self.detect_workbuddy()
 
     def detect_workbuddy(self):
@@ -886,8 +960,8 @@ class Controller(QObject):
 
     def toggle_visible(self):
         self.user_visible = not self.user_visible
-        self.pet.setVisible(self.user_visible and not self.settings.card_only and not self.avatar_collapsed)
-        self.bubble.setVisible(self.user_visible)
+        self.pet.setVisible(self.user_visible and not self.fullscreen_hidden and not self.settings.card_only and not self.avatar_collapsed)
+        self.sync_visibility()
         if not self.user_visible:
             self.idle_director.cancel();self.finish_interaction(refresh=False)
             self.ambient_director.cancel()
@@ -922,6 +996,7 @@ class Controller(QObject):
             return
         self.shutting_down = True
         self.timer.stop()
+        self.fullscreen_timer.stop()
         self.interaction_timer.stop()
         self.idle_director.cancel()
         self.ambient_director.cancel()
@@ -993,7 +1068,7 @@ def run_app(root: Path, demo=False, *, quit_requested=False, show_settings=False
             else:
                 controller.user_visible = True
                 if not controller.settings.card_only:controller.restore_avatar()
-                controller.bubble.show()
+                controller.sync_visibility()
             peer.disconnectFromServer()
             if peer in peers:
                 peers.remove(peer)

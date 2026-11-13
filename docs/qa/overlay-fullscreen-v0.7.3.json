@@ -1,0 +1,34 @@
+{
+  "version": "0.7.3",
+  "synthetic_data_only": true,
+  "native": [
+    {
+      "ordinary_maximized_not_fullscreen": true,
+      "native_fullscreen_hides_both_and_pauses_animation": true,
+      "restore_without_focus_steal": true,
+      "independent_native_topmost": true,
+      "window_mode_retained": true,
+      "manual_avatar_hide_retained": true,
+      "capsule_session_width": 150,
+      "scale": "1"
+    },
+    {
+      "ordinary_maximized_not_fullscreen": true,
+      "native_fullscreen_hides_both_and_pauses_animation": true,
+      "restore_without_focus_steal": true,
+      "independent_native_topmost": true,
+      "window_mode_retained": true,
+      "manual_avatar_hide_retained": true,
+      "capsule_session_width": 150,
+      "scale": "1.5"
+    }
+  ],
+  "assets_changed": false,
+  "automated_tests": 217,
+  "frozen_native": {
+    "version": "0.7.3",
+    "frozen_start_during_fullscreen_hidden": true,
+    "frozen_exit_fullscreen_restores_animation": true,
+    "saved_topmost_preferences_loaded": true
+  }
+}

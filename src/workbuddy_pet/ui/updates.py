@@ -60,14 +60,14 @@ class UpdateManager(QObject):
 
     def check(self,manual=False):
         if self.job or self.controller.shutting_down:
-            if manual:self.dialog.show();self.dialog.raise_()
+            if manual:self.controller.show_overlay_dialog(self.dialog)
             return
         if (self.phase=='ready' or self.phase=='available' and manual) and self.release:
-            if manual or self.release.version not in self.dismissed:self.dialog.show();self.dialog.raise_()
+            if manual or self.release.version not in self.dismissed:self.controller.show_overlay_dialog(self.dialog)
             return
         self.phase='checking';self.dialog.heading.setText('检查新版本');self.dialog.notes.setPlainText('当前版本：'+__version__)
         self.dialog.status.setText('正在连接公开发布服务器…');self.dialog.action.setEnabled(False);self.dialog.progress.hide()
-        if manual:self.dialog.show();self.dialog.raise_()
+        if manual:self.controller.show_overlay_dialog(self.dialog)
         self.job=Task(lambda:check_latest(__version__),self)
         def done(release):
             self.release=release
@@ -76,7 +76,7 @@ class UpdateManager(QObject):
                 self.dialog.notes.setPlainText(release.notes)
                 self.dialog.status.setText(f'当前 {__version__} → {release.version} · {release.size/1024/1024:.1f} MB\n下载期间可继续使用；安装只重启桌宠，WorkBuddy 任务继续运行。')
                 self.dialog.action.setText('下载并更新');self.dialog.action.setEnabled(True)
-                if manual or release.version not in self.dismissed:self.dialog.show();self.dialog.raise_()
+                if manual or release.version not in self.dismissed:self.controller.show_overlay_dialog(self.dialog)
             else:
                 self.phase='idle';self.dialog.heading.setText('已是最新版本 '+__version__)
                 self.dialog.status.setText('未发现更高的正式版本。');self.dialog.action.setText('再次检查');self.dialog.action.setEnabled(True)
@@ -132,7 +132,7 @@ class UpdateManager(QObject):
         focus=QApplication.focusWidget()
         editing=isinstance(focus,(QLineEdit,QAbstractSpinBox)) and self.controller.bubble.isAncestorOf(focus)
         busy=self.controller.bubble.materials.job or self.controller.pet.press_position is not None
-        if self.job or busy or editing:
+        if self.job or busy or editing or self.controller.fullscreen_hidden:
             self.dialog.status.setText('更新已就绪，等待当前编辑或素材操作结束后自动安装；也可点击重启安装。')
             QTimer.singleShot(1000,self.auto_install);return
         self.action()
@@ -145,7 +145,7 @@ class UpdateManager(QObject):
         if self.phase=='checking':self.release=None
         self.phase='error';self.dialog.status.setText(message);self.dialog.action.setText('重试');self.dialog.action.setEnabled(True);self.dialog.later.setText('稍后')
         self.controller.dialog.update_status.setText('更新失败，可手动重试。')
-        if show:self.dialog.show()
+        if show:self.controller.show_overlay_dialog(self.dialog)
 
     def finished(self):
         job=self.job;self.job=None

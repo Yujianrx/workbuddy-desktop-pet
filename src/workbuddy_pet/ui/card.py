@@ -96,7 +96,7 @@ class CardWindow(QWidget):
         self.signin_button.setIcon(action_icon('checkin'))
         self.signin_button.setStyleSheet('background:#ffffff;border:1px solid #f5f5f5;border-radius:18px;padding:7px;')
         self.signin_button.setToolTip('每日签到：等待状态，点击设置授权')
-        self.capsule=QPushButton();self.capsule.setFixedSize(200,36);self.capsule.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.capsule=QPushButton();self.capsule.setFixedSize(150,36);self.capsule.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.capsule.setAccessibleName('打开 WorkBuddy 数据看板')
         self.capsule.setStyleSheet('background:white;border:1px solid rgba(0,0,0,24);border-radius:18px;color:#202020;font-size:12px;font-weight:600;')
         self.capsule.clicked.connect(self.open_from_capsule)
@@ -352,7 +352,7 @@ class CardWindow(QWidget):
             self.signin_button.setToolTip(labels.get(action,'快捷操作')+('\n'+url if action=='custom' else ''))
         self.signin_button.setAccessibleName(self.signin_button.toolTip())
 
-    def capsule_width(self):return 48 if self.minimal else 36+200+self.balance_badge.width()+12
+    def capsule_width(self):return 48 if self.minimal else 36+self.capsule.width()+self.balance_badge.width()+12
 
     def resize_balance_badge(self):
         if self.minimal:
@@ -392,7 +392,7 @@ class CardWindow(QWidget):
         text=short+(' · '+name if name else '')
         interacting=bool(self.interaction_text) and time.monotonic()<self.interaction_until
         shown=self.interaction_text if interacting else text
-        self.capsule.setText(self.capsule.fontMetrics().elidedText(shown,Qt.TextElideMode.ElideRight,186))
+        self.capsule.setText(self.capsule.fontMetrics().elidedText(shown,Qt.TextElideMode.ElideRight,self.capsule.width()-14))
         self.capsule.setToolTip((shown+'\n当前任务：' if interacting else '')+text+'\n点击打开数据看板')
         self.window_panel.set_context(name,self.interaction_text if interacting else self.title.text(),self.display.reminders,self.title.toolTip())
         self.subtitle.setVisible(interacting)

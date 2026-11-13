@@ -38,6 +38,9 @@ class Settings:
     theme: str = 'gray'
     capsule_transparent: bool = False
     window_mode: bool = False
+    pet_topmost: bool = True
+    capsule_topmost: bool = True
+    auto_hide_fullscreen: bool = True
 
 
 def clamp_position(position: tuple[int, int], size: tuple[int, int], screens: Sequence[Rect]) -> tuple[int, int]:
@@ -72,6 +75,7 @@ def load_settings(root: Path) -> Settings:
         card_position=value.get('card_position')
         if not (isinstance(card_position,list) and len(card_position)==2 and all(type(n) is int and abs(n)<100000 for n in card_position)):
             card_position=None
+        def flag(key):return value.get(key,True) if type(value.get(key,True)) is bool else True
         return Settings(path, size, value.get("notifications") if type(value.get("notifications")) is bool else True,
                         tuple(position) if position else None, value.get("startup") is True,
                         value.get('card_only') is True, value.get('auto_collapse', True) is True,
@@ -85,7 +89,8 @@ def load_settings(root: Path) -> Settings:
                         value.get('avatar_collapsed') is True,
                         value.get('minimal') is True and value.get('window_mode') is not True,
                         value.get('theme') if value.get('theme') in ('gray','blue','red') else 'gray',
-                        value.get('capsule_transparent') is True,value.get('window_mode') is True)
+                        value.get('capsule_transparent') is True,value.get('window_mode') is True,
+                        flag('pet_topmost'),flag('capsule_topmost'),flag('auto_hide_fullscreen'))
     except (OSError, ValueError, TypeError):
         return Settings()
 
@@ -100,3 +105,5 @@ def display_mode(settings):
     hidden=settings.card_only or settings.avatar_collapsed
     if settings.window_mode:return 'window_only' if hidden else 'window'
     return 'detached' if hidden else 'minimal' if settings.minimal else 'standard'
+
+OVERLAY_OPTIONS=(('桌宠置顶','pet_topmost'),('胶囊／窗口置顶','capsule_topmost'),('全屏时自动收起','auto_hide_fullscreen'))
