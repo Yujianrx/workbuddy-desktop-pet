@@ -24,11 +24,12 @@
     }
   ],
   "assets_changed": false,
-  "automated_tests": 217,
+  "automated_tests": 221,
   "frozen_native": {
     "version": "0.7.3",
     "frozen_start_during_fullscreen_hidden": true,
     "frozen_exit_fullscreen_restores_animation": true,
     "saved_topmost_preferences_loaded": true
-  }
+  },
+  "upstream_rename_and_packaging_preserved": true
 }
